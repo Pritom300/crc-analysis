@@ -100,3 +100,49 @@ if (!is.null(importance_metrics)) {
 }
 
 cat("\ncompleted successfully.\n")
+
+
+# Colon-Only Normal Sensitivity & OOB Error
+
+library(GEOquery)
+gse <- getGEO(filename="../Data/input/GSE41258_series_matrix.txt.gz", getGPL=FALSE)
+raw <- pData(gse)
+tcol <- names(raw)[sapply(raw, function(x) any(grepl("^tissue:", x)))][1]
+tissue <- sub("^tissue: ", "", raw[[tcol]]); names(tissue) <- rownames(raw)
+
+pheno_train <- readRDS("../output/pheno_train.rds")
+pheno_test  <- readRDS("../output/pheno_test.rds")
+y_test <- readRDS("../output/y_test.rds")
+pred   <- readRDS("../output/predictions.rds")
+
+cat("\nTRAIN, Normal stage by tissue:\n")
+print(table(tissue[rownames(pheno_train)[pheno_train$Stage == "Normal Colon"]]))
+cat("\nTEST, Normal stage by tissue:\n")
+print(table(tissue[rownames(pheno_test)[pheno_test$Stage == "Normal Colon"]]))
+
+ids <- names(pred); tis <- tissue[ids]; is_norm <- y_test == "Normal Colon"
+cat("\nTEST normals: tissue x predicted class\n")
+print(table(Tissue = tis[is_norm], Predicted = pred[is_norm]))
+
+keep <- !(is_norm & tis != "Normal Colon")
+cm2 <- table(Predicted = pred[keep], Actual = y_test[keep])
+cat("\nTest samples kept (colon-only normals):", sum(keep), "\n"); print(cm2)
+cat("Accuracy with colon-only normals:", round(sum(diag(cm2)) / sum(cm2), 3), "\n")
+
+step <- read.csv("../output/StepMiner_Q8_Final_Results.csv")
+p1 <- step$ProbeID[step$Transition == "Normal Colon → Adenoma (Polyp)"]
+ex <- exprs(gse); if (max(ex, na.rm = TRUE) > 50) ex <- log2(ex + 1)
+m  <- function(lbl) rowMeans(ex[p1, names(tissue)[tissue == lbl], drop = FALSE])
+dl <- m("Normal Liver") - m("Normal Colon"); dg <- m("Normal Lung") - m("Normal Colon")
+cat("\nNormal->Adenoma probes:", length(p1),
+    "| |liver-colon| > 2:", sum(abs(dl) > 2), "| |lung-colon| > 2:", sum(abs(dg) > 2), "\n")
+
+
+
+#OOB Error
+rf_model <- readRDS("../output/Stage_Classification_Final.rds")
+
+oob_error <- rf_model$err.rate[500, "OOB"] * 100
+
+print(oob_error)
+
