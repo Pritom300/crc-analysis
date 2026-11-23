@@ -137,6 +137,7 @@ if (length(missing_genes) > 0) {
 X_valid_df <- X_valid_df[, train_genes, drop = FALSE]
 
 # Predict
+set.seed(123)
 predictions <- predict(rf_model, newdata = X_valid_df)
 
 # Since GSE14333 only has Primary Cancer, we can only validate that class
