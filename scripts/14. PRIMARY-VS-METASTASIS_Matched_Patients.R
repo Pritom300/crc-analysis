@@ -75,6 +75,7 @@ print(ci_test$PerClass)
 write.csv(ci_test$PerClass, "../output/Test_Set_Bootstrap_CI.csv", row.names = FALSE)
 
 # GSE14333 external validation 
+set.seed(123)
 cat("\n GSE14333 EXTERNAL VALIDATION — 95% Bootstrap CI \n")
 n_ext <- length(predictions)
 acc_ext_boot <- numeric(n_boot_ci)
