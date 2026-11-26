@@ -46,6 +46,7 @@ If you intend to run the Python validation pipeline (`notebooks/blood_panel.ipyn
 3. **Run Notebook Cells**: Execute all blocks inside `blood_panel.ipynb` sequentially to reproduce.
 
 ---
+> **Note:** To avoid any directory errors when saving results, please create the `output` folder along with its subfolder `LIMMA_Results` (`output/LIMMA_Results`) in the root directory before running the code.
 
 ## Open Source License
 Distributed under the **MIT License**. 
